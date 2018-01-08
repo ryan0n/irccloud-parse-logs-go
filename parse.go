@@ -6,12 +6,14 @@ import (
 	"io"
 	"log"
 	"os"
+	"flag"
 )
 
 
-func ExampleReader() {
+func parseZippedLogFile(zipFile string) {
 	// Open a zip archive for reading.
-	r, err := zip.OpenReader("./irccloud.zip")
+	print("\nParsing zipFile: " + zipFile + "\n")
+	r, err := zip.OpenReader(zipFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,5 +40,7 @@ func ExampleReader() {
 
 
 func main() {
-	ExampleReader()
+	zipFile := flag.String("zipFile", "", "Use --zipfile=/path/to/irccloudlogs.zip")
+	flag.Parse()
+	parseZippedLogFile(*zipFile)
 }
