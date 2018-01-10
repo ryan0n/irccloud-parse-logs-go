@@ -3,44 +3,39 @@ package main
 import (
 	"archive/zip"
 	"fmt"
-	"io"
 	"log"
-	"os"
 	"flag"
+	"bufio"
+	"strings"
 )
 
-
-func parseZippedLogFile(zipFile string) {
-	// Open a zip archive for reading.
+func parseZippedLogFile(zipFile string, searchPhrase string) {
 	print("\nParsing zipFile: " + zipFile + "\n")
+
+	// Open the zip file for reading
 	r, err := zip.OpenReader(zipFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer r.Close()
 
-	// Iterate through the files in the archive,
-	// printing some of their contents.
+	// Loop through the files in the archive
 	for _, f := range r.File {
-		fmt.Printf("Contents of %s:\n", f.Name)
-		rc, err := f.Open()
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = io.CopyN(os.Stdout, rc, 68)
-		if err != nil {
-			print("\nerror!\n")
-			log.Fatal(err)
+		rc, _ := f.Open()
+		fileScanner := bufio.NewScanner(rc)
+		for fileScanner.Scan() {
+			// Print the current line out if it matches the searchPhrase
+			if strings.Contains(fileScanner.Text(), searchPhrase) {
+				fmt.Println(fileScanner.Text())
+			}
 		}
 		rc.Close()
-		fmt.Println()
 	}
 }
 
-
-
 func main() {
-	zipFile := flag.String("zipFile", "", "Use --zipfile=/path/to/irccloudlogs.zip")
+	zipFile := flag.String("zipFile", "", "Use --zipfile=/path/to/irccloudlogs.zip --searchPhrase=SomeSearchPhrase")
+	searchPhrase := flag.String("searchPhrase", "", "Use --zipfile=/path/to/irccloudlogs.zip --searchPhrase=SomeSearchPhrase")
 	flag.Parse()
-	parseZippedLogFile(*zipFile)
+	parseZippedLogFile(*zipFile, *searchPhrase)
 }
